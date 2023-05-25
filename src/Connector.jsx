@@ -14,7 +14,13 @@ const Connector = (props) => {
     pathAttrMapRef.current = pathAttrMap; // Store the updated pathAttrMap
   }, [props.node.bindings]);
 
+  // useEffect(() => {
+  //   // Call the function immediately when the component mounts or props change
+  // }, [props]);
+
   useEffect(() => {
+    console.log("props.node.bindings changed:", props.node.bindings);
+    // Rest of the code
     const updateAttributes = () => {
       const pathAttrMap = pathAttrMapRef.current; // Get the latest pathAttrMap
       const childBoundProps = _.keys(props.node.bindings);
@@ -65,8 +71,8 @@ const Connector = (props) => {
       });
     };
 
-    updateAttributes(); // Call the function immediately when the component mounts or props change
-  }, [props]);
+    updateAttributes();
+  }, [props.node.bindings]);
 
   const childRef = useRef();
   useEffect(() => {
