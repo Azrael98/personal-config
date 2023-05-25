@@ -7,7 +7,6 @@ const Connector = (props) => {
   const [attrs, setter] = useState({});
   const [children, setChildren] = useState(props.node.children);
   const subscribed = useRef({});
-
   const pathAttrMapRef = useRef({});
 
   useEffect(() => {
@@ -16,48 +15,57 @@ const Connector = (props) => {
   }, [props.node.bindings]);
 
   useEffect(() => {
-    const pathAttrMap = pathAttrMapRef.current
-    const childBoundProps = _.keys(props.node.bindings);
+    const updateAttributes = () => {
+      const pathAttrMap = pathAttrMapRef.current; // Get the latest pathAttrMap
+      const childBoundProps = _.keys(props.node.bindings);
 
-    const groups = _.uniq(
-      _.map(childBoundProps, (curr) => props.node.bindings[curr].split("::")[0])
-    );
+      const groups = _.uniq(
+        _.map(childBoundProps, (curr) =>
+          props.node.bindings[curr].split("::")[0]
+        )
+      );
 
-    const toBeUnsubscribed = _.differenceBy(_.keys(subscribed.current), groups);
+      const toBeUnsubscribed = _.differenceBy(
+        _.keys(subscribed.current),
+        groups
+      );
 
-    _.forEach(toBeUnsubscribed, (key) => {
-      subscribed.current[key].unsubscribe();
-      delete subscribed.current[key];
-    });
+      _.forEach(toBeUnsubscribed, (key) => {
+        subscribed.current[key].unsubscribe();
+        delete subscribed.current[key];
+      });
 
-    _.forEach(groups, (key) => {
-      if (!subscribed.current[key]) {
-        const subscription = subscribe(key, {
-          next: (value) => {
-            setter((prevAttrs) =>
-              _.reduce(
-                pathAttrMap,
-                (prev, attribute, path) => {
-                  const [storeKey, storePath] = path.split("::");
-                  const newValue = getValue(storeKey, storePath);
-                  if (storeKey === key && attribute !== "children") {
-                    _.set(prev, attribute, newValue);
-                  }
+      _.forEach(groups, (key) => {
+        if (!subscribed.current[key]) {
+          const subscription = subscribe(key, {
+            next: (value) => {
+              setter((prevAttrs) =>
+                _.reduce(
+                  pathAttrMap,
+                  (prev, attribute, path) => {
+                    const [storeKey, storePath] = path.split("::");
+                    const newValue = getValue(storeKey, storePath);
+                    if (storeKey === key && attribute !== "children") {
+                      _.set(prev, attribute, newValue);
+                    }
 
-                  if (storeKey === key && attribute === "children") {
-                    setChildren(newValue);
-                  }
+                    if (storeKey === key && attribute === "children") {
+                      setChildren(newValue);
+                    }
 
-                  return prev;
-                },
-                { ...prevAttrs }
-              )
-            );
-          },
-        });
-        subscribed.current[key] = subscription;
-      }
-    });
+                    return prev;
+                  },
+                  { ...prevAttrs }
+                )
+              );
+            },
+          });
+          subscribed.current[key] = subscription;
+        }
+      });
+    };
+
+    updateAttributes(); // Call the function immediately when the component mounts or props change
   }, [props]);
 
   const childRef = useRef();
