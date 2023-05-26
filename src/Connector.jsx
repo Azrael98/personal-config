@@ -1,34 +1,139 @@
-import { useEffect, useState, useRef } from "react";
+// import { useEffect, useState, useRef } from "react";
+// import _ from "lodash";
+// import { getValue, setValue, subscribe } from "../store/globalData";
+// import { getElement } from "../helpers/utils";
+
+// const Connector = (props) => {
+//   const [attrs, setter] = useState({});
+//   const [children, setChildren] = useState(props.node.children);
+//   const subscribed = useRef({});
+
+//   useEffect(() => {
+//     const pathAttrMap = _.invert(props.node.bindings);
+//     const childBoundProps = _.keys(props.node.bindings);
+
+//     const groups = _.uniq(
+//       _.map(childBoundProps, (curr) => props.node.bindings[curr].split("::")[0])
+//     );
+
+//     const toBeUnsubscribed = _.differenceBy(_.keys(subscribed.current), groups);
+
+//     _.forEach(toBeUnsubscribed, (key) => {
+//       subscribed.current[key].unsubscribe();
+//       delete subscribed.current[key];
+//     });
+
+//     _.forEach(groups, (key) => {
+//       if (!subscribed.current[key]) {
+//         const subscription = subscribe(key, {
+//           next: (value) => {
+//             setter((prevAttrs) =>
+//               _.reduce(
+//                 pathAttrMap,
+//                 (prev, attribute, path) => {
+//                   const [storeKey, storePath] = path.split("::");
+//                   const newValue = getValue(storeKey, storePath);
+//                   if (storeKey === key && attribute !== "children") {
+//                     _.set(prev, attribute, newValue);
+//                   }
+
+//                   if (storeKey === key && attribute === "children") {
+//                     setChildren(newValue);
+//                   }
+
+//                   return prev;
+//                 },
+//                 { ...prevAttrs }
+//               )
+//             );
+//           },
+//         });
+//         subscribed.current[key] = subscription;
+//       }
+//     });
+//   }, [props]);
+
+//   const childRef = useRef();
+//   useEffect(() => {
+//     childRef.current.addEventListener("prop-change", (e) => {
+//       const propName = e.detail.key;
+//       if (propName) {
+//         const [store, path] = props.node.bindings[propName].split("::");
+//         setValue(store, path, e.detail.value);
+//       }
+//     });
+//   }, [props]);
+
+//   if (attrs?.hidden === false) delete attrs.hidden;
+
+//   return getElement({ ...props.node, children: children }, props.handlers, {
+//     ...attrs,
+//     ref: childRef,
+//   });
+// };
+
+// export default Connector;
+
+
+import React, { Component } from "react";
 import _ from "lodash";
 import { getValue, setValue, subscribe } from "../store/globalData";
 import { getElement } from "../helpers/utils";
 
-const Connector = (props) => {
-  const [attrs, setter] = useState({});
-  const [children, setChildren] = useState(props.node.children);
-  const subscribed = useRef({});
+class Connector extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      attrs: {},
+      children: props.node.children,
+    };
+    this.subscribed = {};
+    this.childRef = React.createRef();
+  }
 
-  useEffect(() => {
-    const pathAttrMap = _.invert(props.node.bindings);
-    const childBoundProps = _.keys(props.node.bindings);
+  componentDidMount() {
+    this.updateSubscriptions();
+    this.addPropChangeListener();
+  }
 
+  componentDidUpdate(prevProps) {
+    if (!_.isEqual(prevProps, this.props)) {
+      this.updateSubscriptions();
+    }
+  }
+
+  componentWillUnmount() {
+    Object.keys(this.subscribed).forEach((key) => {
+      this.subscribed[key].unsubscribe();
+      delete this.subscribed[key];
+    });
+  }
+
+  updateSubscriptions() {
+    const { node } = this.props;
+    const { bindings } = node;
+    const pathAttrMap = _.invert(bindings);
+    const childBoundProps = _.keys(bindings);
     const groups = _.uniq(
-      _.map(childBoundProps, (curr) => props.node.bindings[curr].split("::")[0])
+      childBoundProps.map((curr) => bindings[curr].split("::")[0])
     );
 
-    const toBeUnsubscribed = _.differenceBy(_.keys(subscribed.current), groups);
+    const toBeUnsubscribed = _.differenceBy(
+      Object.keys(this.subscribed),
+      groups
+    );
 
-    _.forEach(toBeUnsubscribed, (key) => {
-      subscribed.current[key].unsubscribe();
-      delete subscribed.current[key];
+    toBeUnsubscribed.forEach((key) => {
+      this.subscribed[key].unsubscribe();
+      delete this.subscribed[key];
     });
 
-    _.forEach(groups, (key) => {
-      if (!subscribed.current[key]) {
+    groups.forEach((key) => {
+      if (!this.subscribed[key]) {
         const subscription = subscribe(key, {
           next: (value) => {
-            setter((prevAttrs) =>
-              _.reduce(
+            this.setState((prevState) => {
+              const updatedAttrs = _.reduce(
                 pathAttrMap,
                 (prev, attribute, path) => {
                   const [storeKey, storePath] = path.split("::");
@@ -38,38 +143,50 @@ const Connector = (props) => {
                   }
 
                   if (storeKey === key && attribute === "children") {
-                    setChildren(newValue);
+                    this.setState({ children: newValue });
                   }
 
                   return prev;
                 },
-                { ...prevAttrs }
-              )
-            );
+                { ...prevState.attrs }
+              );
+
+              return { attrs: updatedAttrs };
+            });
           },
         });
-        subscribed.current[key] = subscription;
+        this.subscribed[key] = subscription;
       }
     });
-  }, [props]);
+  }
 
-  const childRef = useRef();
-  useEffect(() => {
-    childRef.current.addEventListener("prop-change", (e) => {
+  addPropChangeListener() {
+    this.childRef.current.addEventListener("prop-change", (e) => {
       const propName = e.detail.key;
       if (propName) {
-        const [store, path] = props.node.bindings[propName].split("::");
+        const [store, path] = this.props.node.bindings[propName].split("::");
         setValue(store, path, e.detail.value);
       }
     });
-  }, [props]);
+  }
 
-  if (attrs?.hidden === false) delete attrs.hidden;
+  render() {
+    const { attrs, children } = this.state;
+    const { node, handlers } = this.props;
+    if (attrs?.hidden === false) {
+      delete attrs.hidden;
+    }
 
-  return getElement({ ...props.node, children: children }, props.handlers, {
-    ...attrs,
-    ref: childRef,
-  });
-};
+    return getElement(
+      { ...node, children: children },
+      handlers,
+      {
+        ...attrs,
+        ref: this.childRef,
+      }
+    );
+  }
+}
 
 export default Connector;
+
