@@ -92,7 +92,10 @@ class Connector extends Component {
   }
 
   componentDidMount() {
-    this.updateSubscriptions();
+    const { node } = this.props;
+    const { bindings } = node;
+    const pathAttrMap = _.invert(bindings);
+    this.updateSubscriptions(pathAttrMap);
     this.addPropChangeListener();
   }
 
@@ -109,10 +112,9 @@ class Connector extends Component {
     });
   }
 
-  updateSubscriptions() {
-    const { node } = this.props;
-    const { bindings } = node;
-    const pathAttrMap = _.invert(bindings);
+  updateSubscriptions(pathAttrMap) {
+    
+    
     const childBoundProps = _.keys(bindings);
     const groups = _.uniq(
       childBoundProps.map((curr) => bindings[curr].split("::")[0])
