@@ -6,18 +6,19 @@ import { getElement } from "../helpers/utils";
 const Connector = (props) => {
   const [attrs, setter] = useState({});
   const [children, setChildren] = useState(props.node.children);
+  const [bindings, setBindings] = useState(props.node.bindings)
   const subscribed = useRef({});
 
   useEffect(() => {
-    console.log("props.node.bindings changed:", props.node.bindings);
+    console.log("props.node.bindings changed:", bindings);
     // Rest of the code
     const updateAttributes = () => {
-      const pathAttrMap = _.invert(props.node.bindings); // Get the latest pathAttrMap
-      const childBoundProps = _.keys(props.node.bindings);
+      const pathAttrMap = _.invert(bindings); // Get the latest pathAttrMap
+      const childBoundProps = _.keys(bindings);
 
       const groups = _.uniq(
         _.map(childBoundProps, (curr) =>
-          props.node.bindings[curr].split("::")[0]
+          bindings[curr].split("::")[0]
         )
       );
 
@@ -62,14 +63,14 @@ const Connector = (props) => {
     };
 
     updateAttributes();
-  }, [props.node.bindings]);
+  }, [bindings]);
 
   const childRef = useRef();
   useEffect(() => {
     childRef.current.addEventListener("prop-change", (e) => {
       const propName = e.detail.key;
       if (propName) {
-        const [store, path] = props.node.bindings[propName].split("::");
+        const [store, path] = bindings[propName].split("::");
         setValue(store, path, e.detail.value);
       }
     });
