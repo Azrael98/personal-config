@@ -101,7 +101,11 @@ class Connector extends Component {
 
   componentDidUpdate(prevProps) {
     if (!_.isEqual(prevProps, this.props)) {
-      this.updateSubscriptions();
+      const { node } = this.props;
+      const { bindings } = node;
+      const pathAttrMap = _.invert(bindings);
+      this.updateSubscriptions(pathAttrMap, bindings);
+
     }
   }
 
