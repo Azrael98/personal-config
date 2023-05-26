@@ -8,7 +8,7 @@ const Connector = (props) => {
   const [children, setChildren] = useState(props.node.children);
   const subscribed = useRef({});
 
-  useEffect(() => {
+  const updateAttributes = () => {
     const pathAttrMap = _.invert(props.node.bindings);
     const childBoundProps = _.keys(props.node.bindings);
 
@@ -51,6 +51,10 @@ const Connector = (props) => {
         subscribed.current[key] = subscription;
       }
     });
+  };
+
+  useEffect(() => {
+    updateAttributes();
   }, [props.node.bindings]);
 
   const childRef = useRef();
@@ -62,7 +66,7 @@ const Connector = (props) => {
         setValue(store, path, e.detail.value);
       }
     });
-  }, [props]);
+  }, [props.node.bindings]);
 
   if (attrs?.hidden === false) delete attrs.hidden;
 
