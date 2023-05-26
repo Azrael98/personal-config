@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import _ from "lodash";
-import { getValue, setValue, subscribe } from "../store/globalData";
+import { getValue, setValue, subscribe, unsubscribe } from "../store/globalData";
 import { getElement } from "../helpers/utils";
 
 const Connector = (props) => {
   const [attrs, setter] = useState({});
   const [children, setChildren] = useState(props.node.children);
   const subscribed = useRef({});
+  const bindingsChanged = useRef(false);
 
   const updateAttributes = () => {
     const pathAttrMap = _.invert(props.node.bindings);
@@ -19,13 +20,13 @@ const Connector = (props) => {
     const toBeUnsubscribed = _.differenceBy(_.keys(subscribed.current), groups);
 
     _.forEach(toBeUnsubscribed, (key) => {
-      subscribed.current[key].unsubscribe();
+      unsubscribe(subscribed.current[key]);
       delete subscribed.current[key];
     });
 
     _.forEach(groups, (key) => {
       if (!subscribed.current[key]) {
-        const subscription = subscribe(key, {
+        subscribed.current[key] = subscribe(key, {
           next: (value) => {
             setter((prevAttrs) =>
               _.reduce(
@@ -48,25 +49,37 @@ const Connector = (props) => {
             );
           },
         });
-        subscribed.current[key] = subscription;
       }
     });
   };
 
   useEffect(() => {
-    updateAttributes();
+    if (bindingsChanged.current) {
+      updateAttributes();
+      bindingsChanged.current = false;
+    }
+  }, [props.node.bindings]);
+
+  useEffect(() => {
+    bindingsChanged.current = true;
   }, [props.node.bindings]);
 
   const childRef = useRef();
   useEffect(() => {
-    childRef.current.addEventListener("prop-change", (e) => {
+    const handlePropChange = (e) => {
       const propName = e.detail.key;
       if (propName) {
         const [store, path] = props.node.bindings[propName].split("::");
         setValue(store, path, e.detail.value);
       }
-    });
-  }, [props.node.bindings]);
+    };
+
+    childRef.current.addEventListener("prop-change", handlePropChange);
+
+    return () => {
+      childRef.current.removeEventListener("prop-change", handlePropChange);
+    };
+  }, []);
 
   if (attrs?.hidden === false) delete attrs.hidden;
 
