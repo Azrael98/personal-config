@@ -76,7 +76,7 @@
 
 
 import React, { Component } from "react";
-import _ from "lodash";
+import _, { bind } from "lodash";
 import { getValue, setValue, subscribe } from "../store/globalData";
 import { getElement } from "../helpers/utils";
 
@@ -95,7 +95,7 @@ class Connector extends Component {
     const { node } = this.props;
     const { bindings } = node;
     const pathAttrMap = _.invert(bindings);
-    this.updateSubscriptions(pathAttrMap);
+    this.updateSubscriptions(pathAttrMap, bindings);
     this.addPropChangeListener();
   }
 
@@ -112,7 +112,7 @@ class Connector extends Component {
     });
   }
 
-  updateSubscriptions(pathAttrMap) {
+  updateSubscriptions(pathAttrMap, bindings) {
     
     
     const childBoundProps = _.keys(bindings);
