@@ -90,6 +90,6 @@ function repeatingStore(i, handlers) {
 //Checks whether given node has binding or not, if it does then the given nodes gets wrapped inside a wrapper named Component
 export function transform(node, handlers) {
   if (node.bindings && Object.keys(node.bindings).length > 0) {
-    return createElement(Connector, { node, handlers });
+    return createElement(Connector, { node, handlers, bindings:props.node.bindings });
   } else return getElement(node, handlers);
 }

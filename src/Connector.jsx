@@ -3,19 +3,19 @@ import _ from "lodash";
 import { getValue, setValue, subscribe, unsubscribe } from "../store/globalData";
 import { getElement } from "../helpers/utils";
 
-const Connector = (props) => {
+const Connector = ({node, handlers, bindings}) => {
   const [attrs, setter] = useState({});
-  const [children, setChildren] = useState(props.node.children);
+  const [children, setChildren] = useState(node.children);
   const subscribed = useRef({});
 
   useEffect(() => {
     const updateAttributes = () => {
-      const pathAttrMap = _.invert(props.node.bindings);
-      const childBoundProps = _.keys(props.node.bindings);
+      const pathAttrMap = _.invert(bindings);
+      const childBoundProps = _.keys(bindings);
 
       const groups = _.uniq(
         _.map(childBoundProps, (curr) =>
-          props.node.bindings[curr].split("::")[0]
+          bindings[curr].split("::")[0]
         )
       );
 
@@ -59,14 +59,14 @@ const Connector = (props) => {
     };
 
     updateAttributes();
-  }, [props.node.bindings]);
+  }, [bindings]);
 
   const childRef = useRef();
   useEffect(() => {
     const handlePropChange = (e) => {
       const propName = e.detail.key;
       if (propName) {
-        const [store, path] = props.node.bindings[propName].split("::");
+        const [store, path] = bindings[propName].split("::");
         setValue(store, path, e.detail.value);
       }
     };
@@ -80,7 +80,7 @@ const Connector = (props) => {
 
   if (attrs?.hidden === false) delete attrs.hidden;
 
-  return getElement({ ...props.node, children: children }, props.handlers, {
+  return getElement({ ...node, children: children }, handlers, {
     ...attrs,
     ref: childRef,
   });
