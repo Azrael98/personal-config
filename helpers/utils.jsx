@@ -1,5 +1,4 @@
 import * as _ from "lodash";
-import "@idfy/lokey-core-components"
 import { createElement } from "react";
 import Connector from "../src/Connector";
 import { store } from "../store/globalData";

@@ -54,7 +54,6 @@
     "dist"
   ],
   "dependencies": {
-    "@idfy/lokey-core-components": "git+https://idfy_lokey:jb21wAPRsSm2x1SCfGLK@gitlab.idfy.com/code/ui-libraries/idfy-lokey-core-components.git#test_branch",
     "lodash": "^4.17.21",
     "rxjs": "^7.8.0"
   }
