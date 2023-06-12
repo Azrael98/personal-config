@@ -1,7 +1,8 @@
 {
   "name": "config-renderer",
   "version": "1.0.0",
-  "main": "dist/config-renderer.js",
+  "main": "dist/index.js",
+  "source": "src/index.js",
   "license": "MIT",
   "scripts": {
     "build": "webpack",

@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'config-renderer.js',
+    filename: 'index.js',
     library: 'config-renderer',
     libraryTarget: 'umd',
   },
