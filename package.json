@@ -1,0 +1,25 @@
+{
+  "name": "config-renderer",
+  "version": "1.0.0",
+  "main": "dist/config-renderer.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack",
+    "start": "remix run"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^7.22.5",
+    "babel-loader": "^9.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "webpack": "^5.86.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "peerDependencies": {
+    "@idfy/lokey-core-components": "git+https://idfy_lokey:jb21wAPRsSm2x1SCfGLK@gitlab.idfy.com/code/ui-libraries/idfy-lokey-core-components.git#develop"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "rxjs": "^7.8.1"
+  }
+}
