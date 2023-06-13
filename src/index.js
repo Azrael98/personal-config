@@ -22,13 +22,13 @@ export function getStore() {
 export const ConfigRenderer = ({ tree, obj, handlers }) => {
   const [element, setElement] = useState(React.createElement("div"));
   useEffect(() => {
-    // import("@idfy/lokey-core-components");
+    import("@idfy/lokey-core-components");
     init(obj);
     const getData = () => {
       const value = transform(tree, handlers, obj);
       setElement(value);
     };
     getData();
-  }, [tree, obj]);
+  }, [tree, obj, handlers]);
   return element;
 };

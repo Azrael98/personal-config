@@ -57,7 +57,7 @@ const Connector = (props) => {
   useEffect(() => {
     childRef.current.addEventListener("prop-change", (e) => {
       const propName = e.detail.key;
-      if (propName) {
+      if (propName && props.node.bindings[propName]) {
         const [store, path] = props.node.bindings[propName].split("::");
         setValue(store, path, e.detail.value);
       }
