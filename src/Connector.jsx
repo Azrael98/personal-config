@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import _ from "lodash";
-import { getValue, setValue, subscribe } from "./store/globalStore";
+import { getValue, setValue, subscribe } from "./store/globalData";
 import { getElement } from "./helpers/utils";
 
 const Connector = (props) => {
@@ -55,6 +55,7 @@ const Connector = (props) => {
 
   const childRef = useRef();
   useEffect(() => {
+    console.log(childRef)
     childRef.current.addEventListener("prop-change", (e) => {
       const propName = e.detail.key;
       if (propName && props.node.bindings[propName]) {
@@ -66,12 +67,16 @@ const Connector = (props) => {
 
   if (attrs?.hidden === false) delete attrs.hidden;
 
-  return getElement({ ...props.node, children: children }, props.handlers, {
-    ...attrs,
-    ref: childRef,
-  });
+  return getElement(
+    { ...props.node, children: children },
+    props.handlers,
+    props.handlerFactory,
+    props.index,
+    {
+      ...attrs,
+      ref: childRef,
+    }
+  );
 };
 
 export default Connector;
-
-
